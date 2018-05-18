@@ -10,7 +10,6 @@
     <script type="text/javascript">
         jQuery(document).ready(function () {
             jQuery.getJSON("static/data/example_original.json", function (data) {
-                console.log(data);
                 var i = 0;
                 jQuery.each(data, function (infoIndex, info) {
                     var tb = document.getElementById('data_tb');

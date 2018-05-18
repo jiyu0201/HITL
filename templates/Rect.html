@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
-    <script type="text/javascript" src="js/jcanvas.min.js"></script>
-    <script type="text/javascript" src="js/jquery.Jcrop.js"></script>
-    <script type="text/javascript" src="js/FileSaver.min.js"></script>
+    <script type="text/javascript" src="static/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="static/js/jcanvas.min.js"></script>
+    <script type="text/javascript" src="static/js/jquery.Jcrop.js"></script>
+    <script type="text/javascript" src="static/js/FileSaver.min.js"></script>
     <script type="text/javascript">
         jQuery(document).ready(function () {
-            jQuery.getJSON("data/example_original.json", function (data) {
+            jQuery.getJSON("static/data/example_original.json", function (data) {
                 var i = 0;
                 jQuery.each(data, function (infoIndex, info) {
                     var tb = document.getElementById('data_tb');
@@ -54,7 +54,7 @@
             var cvs = $.getId('img_cvs');
             var ctx = cvs.getContext('2d');
             var imgObj = new Image();
-            imgObj.src = 'img/fapiao.jpg';
+            imgObj.src = 'static/img/fapiao.jpg';
             imgObj.onload = function () {
                 cvs.width = imgObj.naturalWidth;
                 cvs.height = imgObj.naturalHeight;
@@ -111,14 +111,14 @@
             jQuery('#coords input').val('');
         };
     </script>
-    <link rel="stylesheet" href="css/jquery.Jcrop.css" type="text/css"/>
+    <link rel="stylesheet" href="static/css/jquery.Jcrop.css" type="text/css"/>
 </head>
 <body>
 <div>
     <div style="float: left">
         <canvas id="img_cvs"></canvas>
         <div id="jcrop_div" class="container" style="display: none">
-            <img src="img/fapiao.jpg" id="target" alt="[Jcrop Example]"/>
+            <img src="static/img/fapiao.jpg" id="target" alt="[Jcrop Example]"/>
             <form id="coords" class="coords" onsubmit="return false;" action="http://example.com/post.php">
                 <div class="inline-labels" style="display: none">
                     <label>X1 <input type="text" size="4" id="x1" name="x1"/></label>
@@ -186,7 +186,7 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="js/rain.js"></script>
+<script type="text/javascript" src="static/js/rain.js"></script>
 <script>
     var cvs = $.getId("img_cvs");
     var ctx = cvs.getContext("2d");
@@ -195,7 +195,7 @@
         var y = e.pageY;
         ctx.clearRect(0, 0, cvs.width, cvs.height);
         var imgObj = new Image();
-        imgObj.src = 'img/fapiao.jpg';
+        imgObj.src = 'static/img/fapiao.jpg';
         imgObj.onload = function () {
             cvs.width = imgObj.naturalWidth;
             cvs.height = imgObj.naturalHeight;

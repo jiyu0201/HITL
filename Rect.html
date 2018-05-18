@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="js/jcanvas.min.js"></script>
+    <script type="text/javascript" src="js/jquery.Jcrop.js"></script>
+    <script type="text/javascript" src="js/FileSaver.min.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(function () {
+            jQuery.getJSON("data/example_original.json", function (data) {
+                var i = 0;
+                jQuery.each(data, function (infoIndex, info) {
+                    var tb = document.getElementById('data_tb');
+                    var tr_node = document.createElement('tr');
+                    tr_node.setAttribute('id', 'rect_' + i);
+                    var td_id = document.createElement('td');
+                    td_id.setAttribute('class', 'rect_id');
+                    td_id.innerHTML = i;
+                    tr_node.appendChild(td_id);
+                    var td_x1 = document.createElement('td');
+                    td_x1.setAttribute('class', 'rect_x1');
+                    td_x1.innerHTML = info['bbox'][0][0];
+                    tr_node.appendChild(td_x1);
+                    var td_y1 = document.createElement('td');
+                    td_y1.setAttribute('class', 'rect_y1');
+                    td_y1.innerHTML = info['bbox'][0][1];
+                    tr_node.appendChild(td_y1);
+                    var td_x2 = document.createElement('td');
+                    td_x2.setAttribute('class', 'rect_x2');
+                    td_x2.innerHTML = info['bbox'][3][0];
+                    tr_node.appendChild(td_x2);
+                    var td_y2 = document.createElement('td');
+                    td_y2.setAttribute('class', 'rect_y2');
+                    td_y2.innerHTML = info['bbox'][3][1];
+                    tr_node.appendChild(td_y2);
+                    for (var j = 1; j <= 3; j++) {
+                        var td_content = document.createElement('td');
+                        td_content.setAttribute('class', 'rect_content');
+                        td_content.innerHTML = info['predicts'][j - 1]['content'];
+                        tr_node.appendChild(td_content);
+                    }
+                    var td_right_content = document.createElement('td');
+                    td_right_content.setAttribute('class', 'rect_right_content');
+                    td_right_content.innerHTML = info['predicts'][0]['content'];
+                    tr_node.appendChild(td_right_content);
+                    tb.appendChild(tr_node);
+                    i++;
+                });
+            });
+        });
+        window.onload = function () {
+            var cvs = $.getId('img_cvs');
+            var ctx = cvs.getContext('2d');
+            var imgObj = new Image();
+            imgObj.src = 'img/fapiao.jpg';
+            imgObj.onload = function () {
+                cvs.width = imgObj.naturalWidth;
+                cvs.height = imgObj.naturalHeight;
+                ctx.drawImage(imgObj, 0, 0, imgObj.naturalWidth, imgObj.naturalHeight);
+                ctx.strokeStyle = "#FF0000";
+                var tb = document.getElementById('data_tb');
+                var all_rows = tb.rows;
+                for (var i = 0; i < all_rows.length; i++) {
+                    var x1 =all_rows[i].getElementsByClassName('rect_x1')[0].innerHTML;
+                    var y1 = all_rows[i].getElementsByClassName('rect_y1')[0].innerHTML;
+                    var w = all_rows[i].getElementsByClassName('rect_x2')[0].innerHTML - x1;
+                    var h = all_rows[i].getElementsByClassName('rect_y2')[0].innerHTML - y1;
+                    ctx.strokeRect(x1, y1, w, h)
+                }
+            };
+        };
+        var $ =
+            {
+                getId: function (_id) {
+                    return document.getElementById(_id);
+                }
+            }
+    </script>
+    <script>
+        function drawRect(x1, y1, x2, y2) {
+            var jcrop_api;
+            jQuery('#target').Jcrop({
+                onChange: showCoords,
+                onSelect: showCoords,
+                onRelease: clearCoords,
+                setSelect: [x1, y1, x2, y2]
+            }, function () {
+                jcrop_api = this;
+            });
+            jQuery('#coords').on('change', 'input', function (e) {
+                var x_1 = $('#x1').val(),
+                    x_2 = $('#x2').val(),
+                    y_1 = $('#y1').val(),
+                    y_2 = $('#y2').val();
+                jcrop_api.setSelect([x_1, y_1, x_2, y_2]);
+            });
+        }
+
+        function showCoords(c) {
+            jQuery('#x1').val(c.x);
+            jQuery('#y1').val(c.y);
+            jQuery('#x2').val(c.x2);
+            jQuery('#y2').val(c.y2);
+            jQuery('#w').val(c.w);
+            jQuery('#h').val(c.h);
+        };
+
+        function clearCoords() {
+            jQuery('#coords input').val('');
+        };
+    </script>
+    <link rel="stylesheet" href="css/jquery.Jcrop.css" type="text/css"/>
+</head>
+<body>
+<div>
+    <div style="float: left">
+        <canvas id="img_cvs"></canvas>
+        <div id="jcrop_div" class="container" style="display: none">
+            <img src="img/fapiao.jpg" id="target" alt="[Jcrop Example]"/>
+            <form id="coords" class="coords" onsubmit="return false;" action="http://example.com/post.php">
+                <div class="inline-labels" style="display: none">
+                    <label>X1 <input type="text" size="4" id="x1" name="x1"/></label>
+                    <label>Y1 <input type="text" size="4" id="y1" name="y1"/></label>
+                    <label>X2 <input type="text" size="4" id="x2" name="x2"/></label>
+                    <label>Y2 <input type="text" size="4" id="y2" name="y2"/></label>
+                    <label>W <input type="text" size="4" id="w" name="w"/></label>
+                    <label>H <input type="text" size="4" id="h" name="h"/></label>
+                </div>
+            </form>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+    <div style="float: left;width: 30px">
+        <br>
+    </div>
+    <div style="float: left;">
+        <div id="add_btn_div">
+            <br>
+            <button id="add_rect_btn" onclick="toAddRect()">添加新框</button>
+        </div>
+        <div id="add_rect_div" style="display: none">
+            <div>
+                <br>
+                请输入框内文字：<input type="text" width="100px" id="add_rect_text">
+            </div>
+            <div>
+                <br>
+                <button id="add_ok_btn" onclick="toAddOK()">确认添加</button>&nbsp;&nbsp;
+                <button id="add_no_btn" onclick="toAddNo()">取消添加</button>
+            </div>
+        </div>
+        <div id="chose_rect_div">
+            <div>
+                <br>
+                当前选中框:<label id="chose_rect_id">无</label>&nbsp;&nbsp;
+                <button id="edit_rect_btn" onclick="toEditRect()">修改当前框</button>&nbsp;&nbsp;
+                <button id="del_rect_btn" onclick="toDelRect()">删除当前框</button>
+            </div>
+            <div>
+                <br>
+                当前框内内容：<select id="chose_rect_text_sel" onchange="toSelectContent()"></select>
+            </div>
+            <div>
+                <br>
+                如下拉框中无正确选项，请在下框中填写正确答案：<br>
+                <input id="chose_rect_text_new" type="text" width="100px">&nbsp;&nbsp;
+                <button id="send_rect_text_new_btn" onclick="toAddNewContent()">点击修改</button>
+            </div>
+            <div>
+                <br>
+                请在下框中填写您的意见：<br>
+                <input id="user_suggest" type="text" width="100px">&nbsp;&nbsp;
+                <button id="send_suggest_btn">点击提交</button>
+            </div>
+            <div>
+                <br>
+                <button id="down_json_btn" onclick="toDownJson()">下载最终json文件</button>
+            </div>
+        </div>
+        <div id="edit_div" style="display: none">
+            <br>
+            <button id="edit_ok_btn" onclick="toEditOK()">确认修改</button>&nbsp;&nbsp;
+            <button id="edit_no_btn" onclick="toEditNo()">取消修改</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="js/rain.js"></script>
+<script>
+    var cvs = $.getId("img_cvs");
+    var ctx = cvs.getContext("2d");
+    cvs.addEventListener('click', function (e) {
+        var x = e.pageX;
+        var y = e.pageY;
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        var imgObj = new Image();
+        imgObj.src = 'img/fapiao.jpg';
+        imgObj.onload = function () {
+            cvs.width = imgObj.naturalWidth;
+            cvs.height = imgObj.naturalHeight;
+            ctx.drawImage(imgObj, 0, 0, imgObj.naturalWidth, imgObj.naturalHeight);
+            ctx.strokeStyle = "#FF0000";
+            var tb = document.getElementById('data_tb');
+            var all_rows = tb.rows;
+            for (var i = 0; i < all_rows.length; i++) {
+                var x1 =all_rows[i].getElementsByClassName('rect_x1')[0].innerHTML;
+                var y1 = all_rows[i].getElementsByClassName('rect_y1')[0].innerHTML;
+                var w = all_rows[i].getElementsByClassName('rect_x2')[0].innerHTML - x1;
+                var h = all_rows[i].getElementsByClassName('rect_y2')[0].innerHTML - y1;
+                ctx.beginPath();
+                ctx.rect(x1, y1, w, h);
+                ctx.stroke();
+                if (ctx.isPointInPath(x, y)) {
+                    var select = $.getId('chose_rect_text_sel');
+                    select.innerHTML = '';
+                    var tr = document.getElementById('rect_' + all_rows[i].cells[0].innerHTML);
+                    var content = tr.getElementsByClassName('rect_content');
+                    for (var j = 0; j < content.length; j++) {
+                        var option = document.createElement('option');
+                        jQuery(option).val(content[j].innerHTML);
+                        jQuery(option).text(content[j].innerHTML);
+                        select.append(option);
+                    }
+                    document.getElementById('chose_rect_id').innerHTML = all_rows[i].cells[0].innerHTML
+                }
+            }
+        }
+    })
+</script>
+<div>
+    <table id="data_tb" style="display: none"></table>
+</div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>key_value</title>
+</head>
+<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="js/jcanvas.min.js"></script>
+<script type="text/javascript" src="js/rain.js"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        var cvs_d = document.getElementById('cvs_div');
+        var cvs = $.getId('data_cvs');
+        var ctx = cvs.getContext('2d');
+        var imgObj = new Image();
+        imgObj.src = 'img/fapiao.jpg';
+        imgObj.onload = function () {
+            cvs.width = imgObj.naturalWidth;
+            cvs.height = imgObj.naturalHeight;
+            cvs_d.style.width = imgObj.naturalWidth + 'px';
+            cvs_d.style.height = imgObj.naturalHeight + 'px';
+            ctx.drawImage(imgObj, 0, 0, imgObj.naturalWidth, imgObj.naturalHeight);
+
+            var old_tb = document.getElementById('old_data_tb');
+            var new_tb = document.getElementById('new_data_tb');
+
+            var old_tr_header = document.createElement('tr');
+            old_tr_header.innerHTML = '原始数据';
+            old_tb.appendChild(old_tr_header);
+            var new_tr_header = document.createElement('tr');
+            new_tr_header.innerHTML = '当前数据';
+            new_tb.appendChild(new_tr_header);
+
+            jQuery.getJSON("data/original_data.json", function (data) {
+                jQuery.each(data, function (infoIndex, info) {
+                    var show_tb = document.getElementById('show_data_tb');
+                    var show_tr_node = document.createElement('tr');
+                    show_tr_node.setAttribute('id', 'show_data_' + infoIndex);
+                    var show_td_key_node = document.createElement('td');
+                    show_td_key_node.setAttribute('class', 'key');
+                    show_td_key_node.innerHTML = info['key'] + ':';
+                    show_tr_node.appendChild(show_td_key_node);
+                    var show_td_value_node = document.createElement('td');
+                    show_td_value_node.setAttribute('class', 'value');
+                    for (var show_j = 0; show_j < info['value'].length; show_j++) {
+                        var show_lbl_content_node = document.createElement('label');
+                        show_lbl_content_node.setAttribute('class', 'lbl_content');
+                        show_lbl_content_node.setAttribute('onclick', 'sRect_show(' + infoIndex + ',' + show_j + ')');
+                        show_lbl_content_node.innerHTML = info['value'][show_j]['content'];
+                        show_td_value_node.appendChild(show_lbl_content_node);
+                        var show_input_content_node = document.createElement('input');
+                        show_input_content_node.style.display = 'none';
+                        show_input_content_node.style.width = '100px';
+                        show_input_content_node.setAttribute('class', 'input_content');
+                        show_input_content_node.setAttribute('value', info['value'][show_j]['content']);
+                        show_td_value_node.appendChild(show_input_content_node);
+                    }
+                    show_tr_node.appendChild(show_td_value_node);
+                    var show_td_btn_node = document.createElement('td');
+                    show_td_btn_node.setAttribute('class', 'btn');
+                    var show_btn_edit = document.createElement('button');
+                    show_btn_edit.setAttribute('class', 'btn_edit');
+                    show_btn_edit.innerHTML = '修改文本';
+                    show_btn_edit.setAttribute('onclick', 'edit_Content()');
+                    show_td_btn_node.appendChild(show_btn_edit);
+                    var show_btn_edit_ok = document.createElement('button');
+                    show_btn_edit_ok.setAttribute('class', 'btn_edit_ok');
+                    show_btn_edit_ok.style.display = 'none';
+                    show_btn_edit_ok.innerHTML = '确认修改';
+                    show_btn_edit_ok.setAttribute('onclick', 'edit_OK()');
+                    show_td_btn_node.appendChild(show_btn_edit_ok);
+                    var show_btn_edit_cancel = document.createElement('button');
+                    show_btn_edit_cancel.setAttribute('class', 'btn_edit_cancel');
+                    show_btn_edit_cancel.style.display = 'none';
+                    show_btn_edit_cancel.innerHTML = '取消修改';
+                    show_btn_edit_cancel.setAttribute('onclick', 'edit_Cancel()');
+                    show_td_btn_node.appendChild(show_btn_edit_cancel);
+                    show_tr_node.appendChild(show_td_btn_node);
+                    show_tb.appendChild(show_tr_node);
+
+
+                    var old_tr_node = document.createElement('tr');
+                    old_tr_node.setAttribute('id', 'old_data_' + infoIndex);
+                    var new_tr_node = document.createElement('tr');
+                    new_tr_node.setAttribute('id', 'new_data_' + infoIndex);
+                    var on_td_key_node = document.createElement('td');
+                    on_td_key_node.setAttribute('class', 'key');
+                    on_td_key_node.innerHTML = info['key'] + ':';
+                    old_tr_node.appendChild(on_td_key_node.cloneNode(true));
+                    new_tr_node.appendChild(on_td_key_node);
+                    var on_td_value_node = document.createElement('td');
+                    on_td_value_node.setAttribute('class', 'value');
+                    for (var on_j = 0; on_j < info['value'].length; on_j++) {
+                        var on_lbl_content_node = document.createElement('label');
+                        on_lbl_content_node.setAttribute('class', 'content');
+                        on_lbl_content_node.innerHTML = info['value'][on_j]['content'];
+                        on_td_value_node.appendChild(on_lbl_content_node);
+                    }
+                    old_tr_node.appendChild(on_td_value_node.cloneNode(true));
+                    new_tr_node.appendChild(on_td_value_node);
+                    old_tb.appendChild(old_tr_node);
+                    new_tb.appendChild(new_tr_node);
+
+
+                    var tb = document.getElementById('data_tb');
+                    var tr_node = document.createElement('tr');
+                    tr_node.setAttribute('id', 'data_' + infoIndex);
+                    var td_key_node = document.createElement('td');
+                    td_key_node.setAttribute('class', 'key');
+                    td_key_node.innerHTML = info['key'] + ':';
+                    tr_node.appendChild(td_key_node);
+                    var rect_x1 = info['value'][0]['bbox'][0][0];
+                    var rect_y1 = info['value'][0]['bbox'][0][1];
+                    var rect_x4 = info['value'][0]['bbox'][3][0];
+                    var rect_y4 = info['value'][0]['bbox'][3][1];
+                    for (var j = 0; j < info['value'].length; j++) {
+                        var td_value_node = document.createElement('td');
+                        td_value_node.setAttribute('class', 'value');
+                        var lbl_x1_node = document.createElement('label');
+                        lbl_x1_node.setAttribute('class', 'x1');
+                        lbl_x1_node.innerHTML = info['value'][j]['bbox'][0][0];
+                        td_value_node.appendChild(lbl_x1_node);
+                        var lbl_y1_node = document.createElement('label');
+                        lbl_y1_node.setAttribute('class', 'y1');
+                        lbl_y1_node.innerHTML = info['value'][j]['bbox'][0][1];
+                        td_value_node.appendChild(lbl_y1_node);
+                        var lbl_x4_node = document.createElement('label');
+                        lbl_x4_node.setAttribute('class', 'x4');
+                        lbl_x4_node.innerHTML = info['value'][j]['bbox'][3][0];
+                        td_value_node.appendChild(lbl_x4_node);
+                        var lbl_y4_node = document.createElement('label');
+                        lbl_y4_node.setAttribute('class', 'y4');
+                        lbl_y4_node.innerHTML = info['value'][j]['bbox'][3][1];
+                        td_value_node.appendChild(lbl_y4_node);
+                        var lbl_content_node = document.createElement('label');
+                        lbl_content_node.setAttribute('class', 'content');
+                        lbl_content_node.innerHTML = info['value'][j]['content'];
+                        td_value_node.appendChild(lbl_content_node);
+                        tr_node.appendChild(td_value_node);
+                        if (rect_x1 >= info['value'][j]['bbox'][0][0]) {
+                            rect_x1 = info['value'][j]['bbox'][0][0];
+                        }
+                        if (rect_y1 >= info['value'][j]['bbox'][0][1]) {
+                            rect_y1 = info['value'][j]['bbox'][0][1];
+                        }
+                        if (rect_x4 <= info['value'][j]['bbox'][3][0]) {
+                            rect_x4 = info['value'][j]['bbox'][3][0];
+                        }
+                        if (rect_y4 <= info['value'][j]['bbox'][3][1]) {
+                            rect_y4 = info['value'][j]['bbox'][3][1];
+                        }
+                    }
+                    var td_rect_node = document.createElement('td');
+                    td_rect_node.setAttribute('class', 'rect');
+                    var lbl_rect_x1 = document.createElement('label');
+                    lbl_rect_x1.setAttribute('class', 'rect_x1');
+                    lbl_rect_x1.innerHTML = rect_x1;
+                    td_rect_node.appendChild(lbl_rect_x1);
+                    var lbl_rect_y1 = document.createElement('label');
+                    lbl_rect_y1.setAttribute('class', 'rect_y1');
+                    lbl_rect_y1.innerHTML = rect_y1;
+                    td_rect_node.appendChild(lbl_rect_y1);
+                    var lbl_rect_x4 = document.createElement('label');
+                    lbl_rect_x4.setAttribute('class', 'rect_x4');
+                    lbl_rect_x4.innerHTML = rect_x4;
+                    td_rect_node.appendChild(lbl_rect_x4);
+                    var lbl_rect_y4 = document.createElement('label');
+                    lbl_rect_y4.setAttribute('class', 'rect_y4');
+                    lbl_rect_y4.innerHTML = rect_y4;
+                    td_rect_node.appendChild(lbl_rect_y4);
+                    tr_node.appendChild(td_rect_node);
+                    tb.appendChild(tr_node);
+
+
+                    ctx.strokeStyle = "#FF0000";
+                    ctx.strokeRect(rect_x1, rect_y1, rect_x4 - rect_x1, rect_y4 - rect_y1);
+//                    ctx.beginPath();
+//                    ctx.moveTo(rect_x1, rect_y1);
+//                    ctx.lineTo(rect_x4, rect_y1);
+//                    ctx.lineTo(rect_x4, rect_y4);
+//                    ctx.lineTo(rect_x1, rect_y4);
+//                    ctx.lineTo(rect_x1, rect_y1);
+//                    ctx.stroke();
+                })
+            })
+        };
+    };
+    var $ = {
+        getId: function (_id) {
+            return document.getElementById(_id);
+        }
+    }
+</script>
+<body>
+<div>
+    <div id="cvs_div" style="float: left;">
+        <canvas id="data_cvs"></canvas>
+    </div>
+    <div style="float: left;width: 20px">
+        &nbsp;
+    </div>
+    <div style="float: left;">
+        <table id="show_data_tb"></table>
+        <br>
+        <button id="show_json_differ" onclick="toShowJsonDiffer()">显示对比展示</button>
+        <br><br>
+    </div>
+</div>
+<div id="data_comparison_div" style="display: none">
+    <div style="float: left;">
+        <table id="old_data_tb"></table>
+    </div>
+    <div style="float: left;width: 10px">
+        &nbsp;
+    </div>
+    <div style="float: left;">
+        <table id="new_data_tb"></table>
+    </div>
+</div>
+<div style="display: none">
+    <table id="data_tb"></table>
+    <label id="is_edit">无</label>
+    <label id="select_i">无</label>
+    <label id="select_j">无</label>
+</div>
+</body>
+</html>
